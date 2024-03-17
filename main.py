@@ -6,20 +6,26 @@ import requests
 
 
 def fetch_stackoverflow_answer(question):
+    """
+    This API may not be great for fetching questions,
+    https://api.stackexchange.com/docs/search
+
+    Not good for very basic ones, maybe this should only be used on error messages?
+    """
+    # maybe try v1.1 if limits?
     search_endpoint = 'https://api.stackexchange.com/2.3/search'
     params = {
         'site': 'stackoverflow',
         'intitle': question,
-        'sort': 'relevance',
+        'sort': 'activity',
         'order': 'desc',
-        'filter': '!9Z(-wwYGT'  # This filter returns only the answer body
     }
 
     response = requests.get(search_endpoint, params=params)
     data = response.json()
-
+    #print(f"{question}: {data}")
     if data['items']:
-        # Assuming the first item in the search result is the most relevant
+        # TODO parse all question ids to find best https://api.stackexchange.com/docs/types/question
         question_id = data['items'][0]['question_id']
         answer_endpoint = f'https://api.stackexchange.com/2.3/questions/{question_id}/answers'
         answer_params = {
@@ -41,7 +47,7 @@ def query_to_prompt(query: str) -> str:
     # if has x, use x tool to append ot query
 
     if "search for " in query:
-        a = query.split("search for")[1]
+        a = query.split("search for ")[1]
         b = a.split(" then ")
         search_query = b[0]
         query_result = fetch_stackoverflow_answer(search_query)
